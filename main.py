@@ -144,7 +144,7 @@ def get_hash_list(folder_structure_hash):
     return folder_hash.hexdigest()
 
 
-def open_drive(veracrypt_folder, veracrypt_command, password, target_disk):
+def open_drive(veracrypt_folder, veracrypt_command, password, target_folder):
     logger = get_logger(__name__)
     logger.info("Mounting VeraCrypt volume.")
 
@@ -161,14 +161,14 @@ def open_drive(veracrypt_folder, veracrypt_command, password, target_disk):
     time.sleep(10)
 
     try:
-        if not Path(target_disk).exists():
-            raise OSError(f"Path {target_disk} does not exist.")
+        if not Path(target_folder).exists():
+            raise OSError(f"Path {target_folder} does not exist.")
     except OSError as e:
         logger.exception(e)
         raise
 
 
-def close_drive(veracrypt_folder, target_disk):
+def close_drive(veracrypt_folder):
     logger = get_logger(__name__)
     logger.info("Dismounting VeraCrypt volume.")
 
@@ -239,6 +239,8 @@ def create_backup():
     except ValueError as e:
         logger.exception(e)
         raise
+
+    close_drive(veracrypt_folder)
 
 
 def main():
