@@ -1,9 +1,11 @@
 import os
 import yaml
 import time
+import uuid
 import tqdm
 import shutil
 import hashlib
+import datetime
 import subprocess
 from pathlib import Path
 
@@ -79,7 +81,7 @@ def copy_file_tree(
 ):
     for file_path in tqdm.tqdm(
         iterable=source_folder_structure_hash.keys(),
-        desc="Copying files",
+        desc="Copying files".ljust(50),
         total=len(source_folder_structure_hash.keys()),
     ):
         absolute_source_file_path = Path(source_folder_root, file_path)
@@ -90,8 +92,14 @@ def copy_file_tree(
 
 
 def get_hash_list(folder_structure_hash):
+    combined_hash = ""
     for file_hash in folder_structure_hash.values():
-        print(file_hash)
+        combined_hash += file_hash
+
+    folder_hash = hashlib.sha1()
+    folder_hash.update(combined_hash.encode())
+
+    return folder_hash.hexdigest()
 
 
 def main():
@@ -125,7 +133,14 @@ def main():
         source_folder_root, excluded_folders, hashing=True
     )
 
-    destination_root_path = Path(target_disk, "28092023")
+    current_date = datetime.datetime.now().strftime("%d%m%Y")
+    destination_folder_name = current_date + " - " + "Google Drive"
+
+    destination_root_path = Path(target_disk, destination_folder_name)
+
+    if destination_root_path.exists():
+        print(f"Warning: path already exists. Appending UUID to prevent overwriting.")
+        destination_root_path = Path(destination_root_path / Path(str(uuid.uuid4())))
 
     copy_file_tree(
         source_folder_structure_hash, source_folder_root, destination_root_path
@@ -135,7 +150,20 @@ def main():
         destination_root_path, hashing=True
     )
 
-    get_hash_list(source_folder_structure_hash)
+    source_folder_hash = get_hash_list(source_folder_structure_hash)
+    destination_folder_hash = get_hash_list(destination_folder_structure_hash)
+
+    try:
+        if source_folder_hash == destination_folder_hash:
+            print(
+                f"The source folder ({source_folder_root}) and destination folder ({destination_root_path}) hashes are the same: {destination_folder_hash}."
+            )
+        else:
+            raise ValueError(
+                f"The source folder hash: {source_folder_hash} and destination folder hash: {destination_folder_hash} do not match."
+            )
+    except:
+        raise
 
 
 if __name__ == "__main__":
