@@ -13,7 +13,7 @@ from logging_setup import get_logger
 
 def get_config():
     logger = get_logger(__name__)
-    with open("config.yaml", "r") as f:
+    with open("config/config.yaml", "r") as f:
         try:
             file_contents = yaml.safe_load(f)
             return file_contents
@@ -23,7 +23,7 @@ def get_config():
 
 def get_password():
     logger = get_logger(__name__)
-    with open("password.yaml", "r") as f:
+    with open("config/password.yaml", "r") as f:
         try:
             file_contents = yaml.safe_load(f)
             return file_contents
@@ -145,10 +145,12 @@ def get_hash_list(folder_structure_hash):
 
 
 def open_drive(veracrypt_folder, veracrypt_command, password, target_disk):
+    logger = get_logger(__name__)
+    logger.info("Mounting VeraCrypt volume.")
+
     command = (
         veracrypt_folder + "\\" + veracrypt_command.replace("[password]", password)
     )
-    logger = get_logger(__name__)
 
     try:
         subprocess.run(command, check=True)
@@ -166,6 +168,19 @@ def open_drive(veracrypt_folder, veracrypt_command, password, target_disk):
         raise
 
 
+def close_drive(veracrypt_folder, target_disk):
+    logger = get_logger(__name__)
+    logger.info("Dismounting VeraCrypt volume.")
+
+    command = veracrypt_folder + "\\" + "veracrypt /dismount /quit"
+
+    try:
+        subprocess.run(command, check=True)
+    except subprocess.CalledProcessError as e:
+        logger.exception(e)
+        raise
+
+
 def create_backup():
     logger = get_logger(__name__)
 
@@ -176,21 +191,24 @@ def create_backup():
 
     veracrypt_folder = config["veracrypt_folder"]
     veracrypt_command = config["veracrypt_command"]
-    target_disk = config["target_disk"]
+    target_folder = config["target_folder"]
 
     source_folder_root = Path(config["source_folder"])
     excluded_folders = config["excluded_folders"]
-    target_disk = config["target_disk"]
 
-    open_drive(veracrypt_folder, veracrypt_command, password, target_disk)
+    use_veracrypt = config["use_veracrypt"]
+    compare_hashes = config["compare_hashes"]
+
+    if use_veracrypt:
+        open_drive(veracrypt_folder, veracrypt_command, password, target_folder)
 
     source_folder_structure_hash = get_file_structure(
-        source_folder_root, excluded_folders, hashing=True, save_to_file=True
+        source_folder_root, excluded_folders, hashing=compare_hashes, save_to_file=True
     )
 
     current_date = datetime.datetime.now().strftime("%d%m%Y")
-    destination_folder_name = current_date + " - " + "Google Drive"
-    destination_root_path = Path(target_disk, destination_folder_name)
+    destination_folder_name = current_date
+    destination_root_path = Path(target_folder, destination_folder_name)
 
     if destination_root_path.exists():
         logger.warning(
@@ -203,7 +221,7 @@ def create_backup():
     )
 
     destination_folder_structure_hash = get_file_structure(
-        destination_root_path, hashing=True
+        destination_root_path, hashing=compare_hashes
     )
 
     source_folder_hash = get_hash_list(source_folder_structure_hash)
