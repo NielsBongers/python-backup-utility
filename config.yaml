@@ -1,4 +1,28 @@
 veracrypt_folder: "D:\\VeraCrypt"
 veracrypt_command: veracrypt /volume \Device\Harddisk1\Partition2 /letter Q /p [password] /auto /quit
-target_disk: "Q:"
+target_disk: "Q:\\"
 source_folder: "C:\\Users\\Niels\\My Drive"
+
+excluded_folders: 
+    - .tmp.driveupload
+    - .tmp.drivedownload
+    - Backups 
+    - CORE
+    - Cpp 
+    - General 
+    - PDFs 
+    - Images 
+    - Music 
+    - OpenFOAM 
+    - Projects 
+    - Personal 
+    - Relay3D
+    - School - TU e 
+    - Python 
+    - Recordings 
+    - Scripts 
+    - Studying 
+    - Rust 
+    - School - Folly
+    - School - TU e 
+    - School - Ursula 
