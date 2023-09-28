@@ -71,6 +71,8 @@ def get_file_structure(
 
     folder_structure_hash = {}
 
+    logger.info("Starting file hashing.")
+
     for file_path in tqdm.tqdm(
         iterable=sorted_relative_folder_paths,
         total=len(sorted_relative_folder_paths),
@@ -83,6 +85,8 @@ def get_file_structure(
         else:
             file_hash = None
         folder_structure_hash[file_path] = file_hash
+
+    logger.info("Finished hashing all the files.")
 
     if save_to_file:
         current_date = datetime.datetime.now().strftime("%d%m%Y")
