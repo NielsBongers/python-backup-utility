@@ -8,35 +8,46 @@ import hashlib
 import datetime
 import subprocess
 from pathlib import Path
+from logging_setup import get_logger
 
 
 def get_config():
+    logger = get_logger(__name__)
     with open("config.yaml", "r") as f:
         try:
             file_contents = yaml.safe_load(f)
             return file_contents
         except yaml.YAMLError as exception:
-            print(f"Exception: {exception}")
+            logger.exception(f"Exception: {exception}")
 
 
 def get_password():
+    logger = get_logger(__name__)
     with open("password.yaml", "r") as f:
         try:
             file_contents = yaml.safe_load(f)
             return file_contents
         except yaml.YAMLError as exception:
-            print(f"Exception: {exception}")
+            logger.exception(f"Exception: {exception}")
 
 
 def hash_file(source_path):
-    with open(source_path, "rb") as f:
-        file_hash = hashlib.md5()
-        while chunk := f.read(65536):
-            file_hash.update(chunk)
+    logger = get_logger(__name__)
+    try:
+        with open(source_path, "rb") as f:
+            file_hash = hashlib.md5()
+            while chunk := f.read(65536):
+                file_hash.update(chunk)
+    except Exception as e:
+        logger.exception(f"Encountered exception while hashing {source_path}: {e}")
     return file_hash.hexdigest()
 
 
-def get_file_structure(source_folder_root, excluded_folders=None, hashing=True):
+def get_file_structure(
+    source_folder_root, excluded_folders=None, hashing=True, save_to_file=False
+):
+    logger = get_logger(__name__)
+
     source_folder_paths = list(source_folder_root.glob("**/*"))
 
     relative_folder_paths = []
@@ -73,12 +84,29 @@ def get_file_structure(source_folder_root, excluded_folders=None, hashing=True):
             file_hash = None
         folder_structure_hash[file_path] = file_hash
 
+    if save_to_file:
+        current_date = datetime.datetime.now().strftime("%d%m%Y")
+        folder_structure_hash_logging_path = Path(
+            "file_hashes", current_date + " - " + str(uuid.uuid4()) + ".csv"
+        )
+
+        folder_structure_hash_logging_path.parent.mkdir(exist_ok=True, parents=True)
+
+        try:
+            with open(folder_structure_hash_logging_path, "w") as f:
+                f.write("path,hash\n")
+                for key, value in folder_structure_hash.items():
+                    f.write(f"{key},{value}\n")
+        except Exception as e:
+            logger.exception(f"Failed to open {folder_structure_hash_logging_path}.")
+
     return folder_structure_hash
 
 
 def copy_file_tree(
     source_folder_structure_hash, source_folder_root, destination_root_path
 ):
+    logger = get_logger(__name__)
     for file_path in tqdm.tqdm(
         iterable=source_folder_structure_hash.keys(),
         desc="Copying files".ljust(50),
@@ -88,58 +116,82 @@ def copy_file_tree(
         absolute_destination_file_path = Path(destination_root_path, file_path)
         absolute_destination_file_path.parent.mkdir(exist_ok=True, parents=True)
 
-        shutil.copy(absolute_source_file_path, absolute_destination_file_path)
+        try:
+            shutil.copy(absolute_source_file_path, absolute_destination_file_path)
+        except Exception as e:
+            logger.exception(f"Encountered exception while copying {file_path}: {e}")
 
 
 def get_hash_list(folder_structure_hash):
+    logger = get_logger(__name__)
+
     combined_hash = ""
-    for file_hash in folder_structure_hash.values():
-        combined_hash += file_hash
 
-    folder_hash = hashlib.sha1()
-    folder_hash.update(combined_hash.encode())
+    try:
+        for file_hash in folder_structure_hash.values():
+            combined_hash += file_hash
 
+        folder_hash = hashlib.sha1()
+        folder_hash.update(combined_hash.encode())
+    except Exception as e:
+        logger.exception(
+            f"Encountered exception while hashing the folder structure: {e}"
+        )
     return folder_hash.hexdigest()
 
 
-def main():
+def open_drive(veracrypt_folder, veracrypt_command, password, target_disk):
+    command = (
+        veracrypt_folder + "\\" + veracrypt_command.replace("[password]", password)
+    )
+    logger = get_logger(__name__)
+
+    try:
+        subprocess.run(command, check=True)
+    except subprocess.CalledProcessError as e:
+        logger.exception(e)
+        raise
+
+    time.sleep(10)
+
+    try:
+        if not Path(target_disk).exists():
+            raise OSError(f"Path {target_disk} does not exist.")
+    except OSError as e:
+        logger.exception(e)
+        raise
+
+
+def create_backup():
+    logger = get_logger(__name__)
+
+    logger.info(f"Starting backup.")
+
     config = get_config()
     password = get_password()["password"]
 
-    # command = (
-    #     config["veracrypt_folder"]
-    #     + "\\"
-    #     + config["veracrypt_command"].replace("[password]", password)
-    # )
-
-    # try:
-    #     subprocess.run(command, check=True)
-    # except subprocess.CalledProcessError:
-    #     raise
-
-    # time.sleep(10)
-
-    # try:
-    #     if not Path(config["target_disk"]).exists():
-    #         raise OSError(f"Path {config['target_disk']} does not exist.")
-    # except:
-    #     raise
+    veracrypt_folder = config["veracrypt_folder"]
+    veracrypt_command = config["veracrypt_command"]
+    target_disk = config["target_disk"]
 
     source_folder_root = Path(config["source_folder"])
     excluded_folders = config["excluded_folders"]
     target_disk = config["target_disk"]
 
+    open_drive(veracrypt_folder, veracrypt_command, password, target_disk)
+
     source_folder_structure_hash = get_file_structure(
-        source_folder_root, excluded_folders, hashing=True
+        source_folder_root, excluded_folders, hashing=True, save_to_file=True
     )
 
     current_date = datetime.datetime.now().strftime("%d%m%Y")
     destination_folder_name = current_date + " - " + "Google Drive"
-
     destination_root_path = Path(target_disk, destination_folder_name)
 
     if destination_root_path.exists():
-        print(f"Warning: path already exists. Appending UUID to prevent overwriting.")
+        logger.warning(
+            f"Warning: path already exists. Appending UUID to prevent overwriting."
+        )
         destination_root_path = Path(destination_root_path / Path(str(uuid.uuid4())))
 
     copy_file_tree(
@@ -155,15 +207,20 @@ def main():
 
     try:
         if source_folder_hash == destination_folder_hash:
-            print(
+            logger.info(
                 f"The source folder ({source_folder_root}) and destination folder ({destination_root_path}) hashes are the same: {destination_folder_hash}."
             )
         else:
             raise ValueError(
                 f"The source folder hash: {source_folder_hash} and destination folder hash: {destination_folder_hash} do not match."
             )
-    except:
+    except ValueError as e:
+        logger.exception(e)
         raise
+
+
+def main():
+    create_backup()
 
 
 if __name__ == "__main__":

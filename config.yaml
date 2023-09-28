@@ -6,23 +6,23 @@ source_folder: "C:\\Users\\Niels\\My Drive"
 excluded_folders: 
     - .tmp.driveupload
     - .tmp.drivedownload
-    - Backups 
-    - CORE
-    - Cpp 
-    - General 
-    - PDFs 
-    - Images 
-    - Music 
-    - OpenFOAM 
-    - Projects 
-    - Personal 
-    - Relay3D
-    - School - TU e 
-    - Python 
-    - Recordings 
-    - Scripts 
-    - Studying 
-    - Rust 
-    - School - Folly
-    - School - TU e 
-    - School - Ursula 
+    # - Backups 
+    # - CORE
+    # - Cpp 
+    # - General 
+    # - PDFs 
+    # - Images 
+    # - Music 
+    # - OpenFOAM 
+    # - Projects 
+    # - Personal 
+    # - Relay3D
+    # - School - TU e 
+    # - Python 
+    # - Recordings 
+    # - Scripts 
+    # - Studying 
+    # - Rust 
+    # - School - Folly
+    # - School - TU e 
+    # - School - Ursula 

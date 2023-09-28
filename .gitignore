@@ -1,1 +1,4 @@
 password.yaml 
+*.csv
+__pycache__
+*.log 
