@@ -97,7 +97,7 @@ def get_file_structure(
         folder_structure_hash_logging_path.parent.mkdir(exist_ok=True, parents=True)
 
         try:
-            with open(folder_structure_hash_logging_path, "w") as f:
+            with open(folder_structure_hash_logging_path, "w", encoding="utf-8") as f:
                 f.write("path,hash\n")
                 for key, value in folder_structure_hash.items():
                     f.write(f"{key},{value}\n")
