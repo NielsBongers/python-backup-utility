@@ -240,7 +240,8 @@ def create_backup():
         logger.exception(e)
         raise
 
-    close_drive(veracrypt_folder)
+    if use_veracrypt:
+        close_drive(veracrypt_folder)
 
 
 def main():
