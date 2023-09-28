@@ -1,1 +1,4 @@
-target disk": "Q:"
+veracrypt_folder: "D:\\VeraCrypt"
+veracrypt_command: veracrypt /volume \Device\Harddisk1\Partition2 /letter Q /p [password] /auto /quit
+target_disk: "Q:"
+source_folder: "C:\\Users\\Niels\\My Drive"
