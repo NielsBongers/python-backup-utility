@@ -221,7 +221,7 @@ def create_backup():
     )
 
     destination_folder_structure_hash = get_file_structure(
-        destination_root_path, hashing=compare_hashes
+        destination_root_path, hashing=compare_hashes, save_to_file=True
     )
 
     source_folder_hash = get_hash_list(source_folder_structure_hash)
@@ -238,7 +238,6 @@ def create_backup():
             )
     except ValueError as e:
         logger.exception(e)
-        raise
 
     if use_veracrypt:
         close_drive(veracrypt_folder)
@@ -246,6 +245,7 @@ def create_backup():
 
 def main():
     create_backup()
+    close_drive("D:\\VeraCrypt")
 
 
 if __name__ == "__main__":
