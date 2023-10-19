@@ -100,7 +100,7 @@ def get_file_structure(
             with open(folder_structure_hash_logging_path, "w", encoding="utf-8") as f:
                 f.write("path,hash\n")
                 for key, value in folder_structure_hash.items():
-                    f.write(f"{key},{value}\n")
+                    f.write(f"\"{key}','{value}\"\n")
         except Exception as e:
             logger.exception(f"Failed to open {folder_structure_hash_logging_path}.")
 
