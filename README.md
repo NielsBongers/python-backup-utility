@@ -1,14 +1,14 @@
-# Python backup utility 
+# Python back-up utility 
 
 ## Overview 
 
-A simple Python utility that creates backups of a certain root folder, excluding specified subfolders, and copies them over. After copying, the hashes of the source and destinations are compared. This takes quite some time, and if files change, the code may complain, so it's recommended to this while not in use. 
+A simple Python utility that creates back-ups of a certain root folder, excluding specified subfolders, and copies them over. After copying, the hashes of the source and destinations are compared. This takes quite some time, and if files change, the code may complain, so it's recommended to this while not in use. 
 
 ## Features 
 
 ### Overwrite-protection 
 
-A target folder is created with the current date. If this folder already exists (for example, if the code is ran twice, or if the date on the machine is changed), a subfolder with a UUID as name will be created, to prevent overwriting previous backups. 
+A target folder is created with the current date. If this folder already exists (for example, if the code is ran twice, or if the date on the machine is changed), a subfolder with a UUID as name will be created, to prevent overwriting previous back-ups. 
 
 ### Hashing 
 
@@ -16,17 +16,18 @@ During each run, a SHA1 hash for each file is made, and saved for the source fil
 
 ### Excluded folders
 
-In the ```config.yaml```, folders can be excluded. By default, I have excluded the Google Drive synchronization folders - those tend to give errors. 
+In the ```config.yaml```, folders can be excluded. By default, I have excluded the Google Drive synchronization folders - those tend to give errors. I also added the name of the back-up system log folder: I kept getting mismatches until I traced it back to that file, which of course changes during the course of the back-up run. 
 
 ```yaml
 excluded_folders: 
     - .tmp.driveupload
     - .tmp.drivedownload
+    - back-up-system-logs
     - Folders 
     - That 
     - Don't 
     - Need 
-    - Backups 
+    - Backups
 ```
 
 ### VeraCrypt 
