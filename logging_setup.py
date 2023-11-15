@@ -10,7 +10,7 @@ def get_logger(logger_name):
         format="%(asctime)s.%(msecs)03d [%(levelname)s] [%(name)s] %(message)s",
         datefmt="%d-%m-%Y %H:%M:%S",
         handlers=[
-            logging.FileHandler("Logs/file.log", mode="a"),
+            logging.FileHandler("backup-system-logs/file.log", mode="a"),
             logging.StreamHandler(),
         ],
     )

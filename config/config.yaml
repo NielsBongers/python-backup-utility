@@ -9,4 +9,4 @@ veracrypt_command: veracrypt /volume \Device\Harddisk1\Partition2 /letter Q /p [
 excluded_folders: 
     - .tmp.driveupload
     - .tmp.drivedownload
-    - backup-system-logs
+    - Python\Utilities\Backup system\backup-system-logs

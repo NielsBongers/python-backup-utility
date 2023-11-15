@@ -61,10 +61,10 @@ def get_file_structure(
     ):
         if file_path.is_file():
             relative_path = file_path.relative_to(source_folder_root)
-            top_level_folder = relative_path.parts[0]
+            parent_folder = relative_path.parent
 
             if excluded_folders:
-                if top_level_folder in excluded_folders:
+                if str(parent_folder) in excluded_folders:
                     continue
 
             relative_folder_paths.append(relative_path)
