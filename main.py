@@ -247,7 +247,6 @@ def create_backup():
 
 def main():
     create_backup()
-    close_drive("D:\\VeraCrypt")
 
 
 if __name__ == "__main__":
