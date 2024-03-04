@@ -10,6 +10,7 @@ from pathlib import Path
 import tqdm
 import yaml
 
+from analysis import check_latest_hashes
 from logging_setup import get_logger
 
 
@@ -247,6 +248,8 @@ def create_backup():
 
 def main():
     create_backup()
+    df = check_latest_hashes()
+    print(df)
 
 
 if __name__ == "__main__":
